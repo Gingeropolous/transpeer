@@ -16,69 +16,57 @@ mkdir $servdir
 iptobind=192.168.1.38
 port=18050
 
+# Create a server ID for session
+serverid=$RANDOM
+
+# Create hello file
+echo "44UW4sPKb4XbWHm8PXr6K8GQi7jUs9i7t2mTsjDn2zK7jYZwNERfoHaC1Yy4PYs1eTCZ9766hkB6RLUf1y95EvCQNpCZnuu" > $servdir/transpeer_hello.txt
+echo $serverid >> $servdir/transpeer_hello.txt
+
 cd $servdir
 nohup php -S $iptobind:$port > $dir/http.log 2>&1 &
 echo $! > $dir/save_pid.txt
 # https://stackoverflow.com/questions/17385794/how-to-get-the-process-id-to-kill-a-nohup-process/17389526
 
-cd $dir
+echo "We just launched the http server on " $port
+
+cd ~/transpeer
 
 while true
 do
+echo "Just started the loop!"
 # In here are individual scripts for individual p2p network nodes
 # They can be treated like plugins
-networks/monero.sh $servdir
-networks/bitcoin.sh
-networks/wownero.sh
+
+# Run these first to populate some iplists
+networks/monero.sh $servdir $serverid
+networks/wownero.sh $servdir $serverid
+networks/aeon.sh $servdir $serverid
 
 
-sleep 10
+# Now create a listing file for peers that find us and want to know what we have
+
+rm $servdir/$serverid.networks
+ls -lht $servdir/*.iplist | awk '{ print $9 }' > $servdir/$serverid.networks
+
+# OK, now need a subroutine that will search for random IPs. 
+# Also need to go through the existing peer lists and see if anyone is a transpeer
+
+./findtranspeer.sh nohup blah dee blah
+
+
+# https://medium.com/@petehouston/upload-files-with-curl-93064dcccc76
+# curl -F 'fileX=@/path/to/fileX' -F 'fileY=@/path/to/fileY' ... http://localhost/upload
+
+
+
+# OK, now we have ip lists to share with someone who finds us. 
+
+
+sleep 60
 done
 
-# This is the path for your monerod binary.
-# monerod=monerod
+kill -9 `cat $dir/save_pid.txt`
+rm $dir/save_pid.txt
 
-# This is the ip of your local daemon. If you're not running an open node, 127.0.0.1 is fine.
-daemon=192.168.1.170
-
-echo $monerod
-echo $daemon
-
-###
-
-echo "Check network white nodes for domains to add"
-
-white=$($monerod --rpc-bind-ip $daemon print_pl | grep white | awk '{print $3}' | cut -f 1 -d ":")
-white_a=($white)
-
-
-
-for i in "${opennodes[@]}"
-do
-   : 
-	echo "Checking ip: "$i
-	l_hit="$(curl -X POST http://$daemon:18081/getheight -H 'Content-Type: application/json' | grep height | cut -f 2 -d : | cut -f 1 -d ,)"
-	r_hit="$(curl -m 0.5 -X POST http://$i:18081/getheight -H 'Content-Type: application/json' | grep height | cut -f 2 -d : | cut -f 1 -d ,)"
-	echo "Local Height: "$l_hit
-	echo "Remote Height: "$r_hit
-        mini=$(( $l_hit-10 ))
-        echo "minimum is " $mini
-        maxi=$(( $l_hit+10 ))
-        echo "max is " $maxi
-        if [[ "$r_hit" ==  "$l_hit"  ]] || [[ "$r_hit" > "$mini" && "$r_hit" < "$maxi" ]]
-        then
-        echo "################################# Daemon $i is good" 
-        ### Time to write these good ips to a file of some sort!
-        ### Apparently javascript needs some weird format in order to randomize, so I'll make two outputs
-        echo $i >> open_nodes.txt
-	let ctr=ctr+1
-	else
-	echo "$i is closed"
-	fi
-done
-
-
-# http://stackoverflow.com/questions/16753876/javascript-button-to-pick-random-item-from-array
-# http://www.javascriptkit.com/javatutors/randomorder.shtml
-
-
+echo "the script ended"
