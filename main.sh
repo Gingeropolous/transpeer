@@ -18,6 +18,9 @@ mkdir $servdir
 indir=$dir/in
 mkdir $indir
 
+rm $servdir/*
+rm $indir/*
+
 iptobind=192.168.1.38
 port=18050
 
@@ -52,7 +55,11 @@ networks/aeon.sh $servdir $serverid
 # Now create a listing file for peers that find us and want to know what we have
 
 rm $servdir/$serverid.networks
-ls -lht $servdir/*.iplist | awk '{ print $9 }' > $servdir/$serverid.networks
+
+#ls -1 $servdir/*.$serverid.iplist > $servdir/$serverid.networks
+find $servdir/*.$serverid.iplist -printf "%f\n" > $servdir/$serverid.networks
+# awk '{ print $9 }' > $servdir/$serverid.networks
+
 
 # OK, now need a subroutine that will search for random IPs. 
 # Also need to go through the existing peer lists and see if anyone is a transpeer
