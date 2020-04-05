@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#############
+# This currently just runs the host server. 
+
 # wget 192.168.1.38:8000/main.sh
 # php -S 127.0.0.1:8000
 #  sudo apt install php7.0-cli
@@ -10,8 +13,10 @@
 # Make directories. Should totally check if they exist before but who cares. 
 dir=~/files_transpeer
 mkdir $dir
-servdir=~/files_transpeer/serv
+servdir=$dir/serv
 mkdir $servdir
+indir=$dir/in
+mkdir $indir
 
 iptobind=192.168.1.38
 port=18050
@@ -52,7 +57,7 @@ ls -lht $servdir/*.iplist | awk '{ print $9 }' > $servdir/$serverid.networks
 # OK, now need a subroutine that will search for random IPs. 
 # Also need to go through the existing peer lists and see if anyone is a transpeer
 
-./findtranspeer.sh nohup blah dee blah
+# ./findtranspeer.sh nohup blah dee blah
 
 
 # https://medium.com/@petehouston/upload-files-with-curl-93064dcccc76
