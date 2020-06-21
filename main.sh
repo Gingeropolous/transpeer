@@ -1,4 +1,5 @@
 #!/bin/bash
+# blopr
 
 #############
 # This currently just runs the host server. 
