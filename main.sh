@@ -10,8 +10,11 @@
 
 # The transpeer protocol and software. Here we go!
 
+# Create a server ID for session
+server_id=$RANDOM
+
 # Make directories. Should totally check if they exist before but who cares. 
-dir=~/files_transpeer
+dir=~/files_transpeer_$server_id
 mkdir $dir
 servdir=$dir/serv
 mkdir $servdir
@@ -24,12 +27,10 @@ rm $indir/*
 iptobind=192.168.1.38
 port=18050
 
-# Create a server ID for session
-serverid=$RANDOM
-
 # Create hello file
-echo "44UW4sPKb4XbWHm8PXr6K8GQi7jUs9i7t2mTsjDn2zK7jYZwNERfoHaC1Yy4PYs1eTCZ9766hkB6RLUf1y95EvCQNpCZnuu" > $servdir/transpeer_hello.txt
-echo $serverid >> $servdir/transpeer_hello.txt
+# Use monero address as identity
+echo "44UW4sPKb4XbWHm8PXr6K8GQi7jUs9i7t2mTsjDn2zK7jYZwNERfoHaC1Yy4PYs1eTCZ9766hkB6RLUf1y95EvCQNpCZnuu" > $servdir/transpeer_hello_base.txt
+echo $server_id >> $servdir/transpeer_hello_base.txt
 
 cd $servdir
 nohup php -S $iptobind:$port > $dir/http.log 2>&1 &
@@ -38,8 +39,16 @@ echo $! > $dir/save_pid.txt
 
 echo "We just launched the http server on " $port
 
+# Replace with variable at some point but who cares
 cd ~/transpeer
 
+# This subroutine scans the existing IP lists for other transpeers. This effectively runs on nothing until the main loop starts
+# script is idle for now. Output of script is file
+# $servdir/$server_id.othertrans
+# ./scan_for_transpeers.sh $servdir $server_id
+
+
+############### main loop ##############################33
 while true
 do
 echo "Just started the loop!"
@@ -47,24 +56,34 @@ echo "Just started the loop!"
 # They can be treated like plugins
 
 # Run these first to populate some iplists
-networks/monero.sh $servdir $serverid
-networks/wownero.sh $servdir $serverid
-networks/aeon.sh $servdir $serverid
+# These create $servdir/$network.$serverid.iplist
+#
+# networks/monero.sh $servdir $serverid
+networks/wownero.sh $servdir $server_id
+networks/aeon.sh $servdir $server_id
 
 
 # Now create a listing file for peers that find us and want to know what we have
 
-rm $servdir/$serverid.networks
+rm $servdir/$server_id.networks
 
 #ls -1 $servdir/*.$serverid.iplist > $servdir/$serverid.networks
-find $servdir/*.$serverid.iplist -printf "%f\n" > $servdir/$serverid.networks
+find $servdir/*.$server_id.iplist -printf "%f\n" > $servdir/$server_id.networks
 # awk '{ print $9 }' > $servdir/$serverid.networks
 
+# Just need an other_transpeers file of IPs with their included network
+# Then the find transpeer can just look through that file for 
+
+# Possibly change name to peerlink
 
 # OK, now need a subroutine that will search for random IPs. 
 # Also need to go through the existing peer lists and see if anyone is a transpeer
 
 # ./findtranspeer.sh nohup blah dee blah
+
+# Now we need something to get info from the peers we have
+
+./
 
 
 # https://medium.com/@petehouston/upload-files-with-curl-93064dcccc76

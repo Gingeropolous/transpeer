@@ -11,6 +11,9 @@
 # Then we have a bunch of new iplist files. Store them in the servdir I guess?
 # 
 
+# Could also use trick of requesting a specific network when running this script. 
+# And instead of a hello message, simply tries and downloads a file. If the file does not exist, it does not download
+
 indir=$1
 
 while true
