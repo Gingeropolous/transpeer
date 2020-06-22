@@ -16,19 +16,24 @@
 
 indir=$1
 cd $indir
+rm new_transpeer.list
 
-while true
-do
+#while true
+#do
 
-for i in {1..255..1}
-{
-wget 192.168.1.38:18050/transpeer_hello.txt
+#for i in {1..2..1}
+#{
+ip=192.168.1.38
+wget $ip:18050/transpeer_hello.txt
 if [[ "$?" == 0 ]]; then
-head -1 transpeer_hello.txt 
-
+#head -1 transpeer_hello.txt 
+tp_id=$(sed '3q;d' transpeer_hello.txt)
+echo "The next line is the transpeer id"
+echo $tp_id
+echo -e "$tp_id\t$ip" >> new_transpeer.list
 else
     echo "FAIL"
 fi
-}
-done
+#}
+#done
 
