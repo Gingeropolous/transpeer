@@ -18,4 +18,4 @@ cat $servdir/*.$server_id.iplist > $servdir/allips.txt
 
 # This script is put on hold, as it is silly to test. 
 
-final file is called $servdir/$server_id.othertrans
+# final file is called $servdir/$server_id.othertrans

@@ -30,8 +30,11 @@ port=18050
 
 # Create hello file
 # Use monero address as identity
-echo "44UW4sPKb4XbWHm8PXr6K8GQi7jUs9i7t2mTsjDn2zK7jYZwNERfoHaC1Yy4PYs1eTCZ9766hkB6RLUf1y95EvCQNpCZnuu" > $servdir/transpeer_hello_base.txt
+echo "TRANSPEER_PROTOCOL_1" > $servdir/transpeer_hello_base.txt # Using this base file allows for future dumping of more shit into the hello file. For now, we'll just loop through shit and download multiple things. 
+echo "44UW4sPKb4XbWHm8PXr6K8GQi7jUs9i7t2mTsjDn2zK7jYZwNERfoHaC1Yy4PYs1eTCZ9766hkB6RLUf1y95EvCQNpCZnuu" >> $servdir/transpeer_hello_base.txt
 echo $server_id >> $servdir/transpeer_hello_base.txt
+
+cp $servdir/transpeer_hello_base.txt $servdir/transpeer_hello.txt
 
 cd $servdir
 nohup php -S $iptobind:$port > $dir/http.log 2>&1 &
@@ -46,7 +49,7 @@ cd ~/transpeer
 # This subroutine scans the existing IP lists for other transpeers. This effectively runs on nothing until the main loop starts
 # script is idle for now. Output of script is file
 # $servdir/$server_id.othertrans
-# ./scan_for_transpeers.sh $servdir $server_id
+# ./scan_for_transpeers.sh $servdir $server_id &
 
 
 ############### main loop ##############################33
@@ -83,8 +86,20 @@ find $servdir/*.$server_id.iplist -printf "%f\n" > $servdir/$server_id.networks
 # ./findtranspeer.sh nohup blah dee blah
 
 # Now we need something to get info from the peers we have
+# OK, the main thing this loop is doing is creating data that can be served to other transpeers.
+# So, first we have the IP lists of the nodes that are running local. Those can be found in $servdir/$server_id.networks,
+# and the IP lists themselves are found in <network_id>.$server_id.iplist
+# so currently a client connecting would first get the hello file to establish a connection
+# it would then download the $server_id.networks file
+# after parsing that, it would then download the <network_id>.$server_id.iplist
+# So, we want this server to always be providing the most up to date data. 
+# As an aside, if I could use actual code, could probably hack the torrent p2p system to do this instead of re-inventing the wheel.... but BASH!
+# OK, so this server is already serving the most up to date IP list from its current networks
+# The question becomes how to server other transpeers information. Do we just include the transpeer IPs and let the client then connect to them?
+# Or do we download their data and host it ourselves? I think the second, because a transpeer may go offline, but its connected peers may not. 
 
-./
+#./other_transpeer_gather.sh $servdir $server_id
+# returns 
 
 
 # https://medium.com/@petehouston/upload-files-with-curl-93064dcccc76
