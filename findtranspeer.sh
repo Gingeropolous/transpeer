@@ -15,24 +15,20 @@
 # And instead of a hello message, simply tries and downloads a file. If the file does not exist, it does not download
 
 indir=$1
+cd $indir
 
 while true
 do
 
 for i in {1..255..1}
-
-cd $indir
-
-wget 192.168.1.$i:18050/transpeer_hello.txt
+{
+wget 192.168.1.38:18050/transpeer_hello.txt
 if [[ "$?" == 0 ]]; then
 head -1 transpeer_hello.txt 
 
-
-
-
 else
-    echo "Success"
+    echo "FAIL"
 fi
-
+}
 done
 
