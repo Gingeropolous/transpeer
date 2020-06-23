@@ -31,6 +31,7 @@ tp_id=$(sed '3q;d' transpeer_hello.txt)
 echo "The next line is the transpeer id"
 echo $tp_id
 echo -e "$tp_id\t$ip" >> new_transpeer.list
+# throw IP here to subroutine that gathers the data from that transpeer and aggregates it
 else
     echo "FAIL"
 fi
