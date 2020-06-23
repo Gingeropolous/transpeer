@@ -11,14 +11,31 @@ all_lines=`cat $servdir/$server_id.othertrans`
 mkdir $servdir/newag
 cd $servdir/newag
 
-for ip in $all_lines ; 
+for ip in $all_lines ;  # could take this out of the loop and make this script so that ips are thrown into it from a higher routine
 do
 	echo $ip
-	# gah i can't decide if this should be done in the original find transpeer loop. Fuckit just put it here. 
 	wget $ip:18050/transpeer_hello.txt
 	if [[ "$?" == 0 ]]; then
-	head -1 transpeer_hello.txt 
-
-
-
+	tp_id=$(sed '3q;d' transpeer_hello.txt)
+	wget $ip:18050/$tp_id.networks
+	net_avail=`cat $tp_id.networks`
+	for i in $net_avail ;
+	do
+		wget $ip:18050/$i
+	done
+fi
+rm transpeer_hello.txt
 done
+
+# This aggregation might be moved to a subroutine to make the above capable of being looped from a higher routine
+
+cat *.networks > networks.all
+cut -f 1 -d "." networks.all | sort | uniq > networks.uniq
+
+networks_uniq=`cat networks.uniq`
+for i in $networks_uniq ;
+do
+cat $i.*.iplist > $i.second
+done
+
+

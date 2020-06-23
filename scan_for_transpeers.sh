@@ -11,6 +11,8 @@ rm $servdir/allips.txt
 
 cat $servdir/*.$server_id.iplist > $servdir/allips.txt
 
+
+
 # So yeah, then there's a loop that goes through that one at a time (or more), scanning ports for transpeer connections. 
 
 # fuck, will at some point need to create a format for support flags. 
