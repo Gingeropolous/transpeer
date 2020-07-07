@@ -20,11 +20,19 @@
 # Really this script can be broken apart / deleted, and instead can use other_transpeer_gather as called from a random IP shoved into it.
 # For adding a new transpeer, simply need to check if the IP already exists in the other.transpeers file
 
+#https://stackoverflow.com/questions/6482377/check-existence-of-input-argument-in-a-bash-shell-script
+
+if [ $# -eq 0 ]
+  then
+	echo "PLease include argument for directory where data is stored"
+	echo "./findtranspeer ~/in_directory, for example"
+	exit
+fi
 
 indir=$1
 cd $indir
-rm new_transpeer.list
 
+# This will eventually be a loop that just checks random IPs
 #while true
 #do
 
