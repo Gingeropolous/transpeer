@@ -14,6 +14,11 @@
 # Could also use trick of requesting a specific network when running this script. 
 # And instead of a hello message, simply tries and downloads a file. If the file does not exist, it does not download
 
+
+Really this script can be broken apart / deleted, and instead can use other_transpeer_gather as called from a random IP shoved into it.
+For adding a new transpeer, simply need to check if the IP already exists in the other.transpeers file
+
+
 indir=$1
 cd $indir
 rm new_transpeer.list

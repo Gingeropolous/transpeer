@@ -15,6 +15,8 @@
 server_id=$RANDOM
 
 # Make directories. Should totally check if they exist before but who cares. 
+# Currently have this tagged with the server ID so every launch creates unique instance
+# Will definitely make more permanent after debugging
 dir=~/files_transpeer_$server_id
 mkdir $dir
 servdir=$dir/serv
@@ -22,6 +24,7 @@ mkdir $servdir
 indir=$dir/in
 mkdir $indir
 
+# These are to clear the folder to start anew
 rm $servdir/*
 rm $indir/*
 
@@ -30,16 +33,22 @@ port=18050
 
 # Create hello file
 # Use monero address as identity
-echo "TRANSPEER_PROTOCOL_1" > $servdir/transpeer_hello_base.txt # Using this base file allows for future dumping of more shit into the hello file. For now, we'll just loop through shit and download multiple things. 
+echo "TRANSPEER_PROTOCOL_1" > $servdir/transpeer_hello_base.txt # Using this base file allows for future dumping of more shit into the hello file. 
+# For now, we'll just loop through shit and download multiple things. 
 echo "44UW4sPKb4XbWHm8PXr6K8GQi7jUs9i7t2mTsjDn2zK7jYZwNERfoHaC1Yy4PYs1eTCZ9766hkB6RLUf1y95EvCQNpCZnuu" >> $servdir/transpeer_hello_base.txt
+# I dunno why a monero address is needed. Tips?
 echo $server_id >> $servdir/transpeer_hello_base.txt
 
 cp $servdir/transpeer_hello_base.txt $servdir/transpeer_hello.txt
+
+echo "This is our hello file"
+cat $servdir/transpeer_hello.txt
 
 cd $servdir
 nohup php -S $iptobind:$port > $dir/http.log 2>&1 &
 echo $! > $dir/save_pid.txt
 # https://stackoverflow.com/questions/17385794/how-to-get-the-process-id-to-kill-a-nohup-process/17389526
+# Apprently they state to not use this in production. Hopefully someone integrates a real http server
 
 echo "We just launched the http server on " $port
 
@@ -66,13 +75,24 @@ echo "Just started the loop!"
 networks/wownero.sh $servdir $server_id
 networks/aeon.sh $servdir $server_id
 
+echo "These are the heads of the iplist files just created"
+head $servdir/aeon.$server_id.iplist
+head $servdir/wownero.$server_id.iplist
+# Well fuck, these are stored as space delimited values. Thought it would be new line. Grumble.
 
 # Now create a listing file for peers that find us and want to know what we have
 
 rm $servdir/$server_id.networks
 
 #ls -1 $servdir/*.$serverid.iplist > $servdir/$serverid.networks
+
+
+# I guess this one worked. THe others are just garbage I can't delete for some reason. 
 find $servdir/*.$server_id.iplist -printf "%f\n" > $servdir/$server_id.networks
+
+echo "This is our listing file"
+cat $servdir/$server_id.networks
+
 # awk '{ print $9 }' > $servdir/$serverid.networks
 
 # Just need an other_transpeers file of IPs with their included network
@@ -98,19 +118,38 @@ find $servdir/*.$server_id.iplist -printf "%f\n" > $servdir/$server_id.networks
 # The question becomes how to server other transpeers information. Do we just include the transpeer IPs and let the client then connect to them?
 # Or do we download their data and host it ourselves? I think the second, because a transpeer may go offline, but its connected peers may not. 
 
-#./other_transpeer_gather.sh $servdir $server_id
-# returns 
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#                    			  @
+# Gather other data from other transpeers @
+#					  @
+###########################################
 
 
-# https://medium.com/@petehouston/upload-files-with-curl-93064dcccc76
-# curl -F 'fileX=@/path/to/fileX' -F 'fileY=@/path/to/fileY' ... http://localhost/upload
+all_lines=`cat $servdir/$server_id.othertrans`
+
+mkdir $servdir/newag
+cd $servdir/newag
+
+for ip in $all_lines ;  # Currently this is a dumb loop and cannot be parallelized, need to make ind temp folders for file management
+do
+	./other_transpeer_gather.sh $ip 
+done
+# Returns a bunch of files from individual servers in the format $network.$serverid.iplist
+
+./aggregate_transpeer_data.sh
+# This returns a file in the current directory called *.second, where * is the server_id of the transpeer
 
 
+mv *.second $servdir
 
 # OK, now we have ip lists to share with someone who finds us. 
-
+echo "This is the director listing of the servdir"
+dir $servdir
 
 sleep 60
+cd ~/transpeer
+rm -r $servdir/newag # I feel like it should be deleted. 
 done
 
 kill -9 `cat $dir/save_pid.txt`
