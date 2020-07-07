@@ -12,7 +12,7 @@ echo $ip
 wget $ip:18050/transpeer_hello.txt
 if [[ "$?" == 0 ]]; then
 	echo "File downloaded"
-	if [[ `head -1 transpeer_hello` == "TRANSPEER_PROTOCOL_1" ]]; then
+	if [[ `head -1 transpeer_hello.txt` == "TRANSPEER_PROTOCOL_1" ]]; then
 		echo "Protocol match"
 		tp_id=$(sed '3q;d' transpeer_hello.txt)
 		wget $ip:18050/$tp_id.networks
